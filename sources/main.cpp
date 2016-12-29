@@ -6,41 +6,69 @@ const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor yellow = TGAColor(255, 255, 0, 255);
 const TGAColor magenta = TGAColor(255, 0, 255, 255);
 
-void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
+void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color)
 {
 #if _DEBUG
 	image.set(x0, y0, magenta);
 	image.set(x1, y1, magenta);
 #endif
-	bool steep = false;
-	if (std::abs(x0 - x1) < std::abs(y0 - y1)) {
+
+#if 0
+	bool steep = std::abs(x0 - x1) < std::abs(y0 - y1);
+	if (steep) {
 		std::swap(x0, y0);
 		std::swap(x1, y1);
-		steep = true;
 	}
 	if (x0 > x1) {
 		std::swap(x0, x1);
 		std::swap(y0, y1);
 	}
 	int dx = x1 - x0;
-	int dy = y1 - y0;
-	int derror2 = std::abs(dy) << 1;
-	int error2 = 0;
-	int iy = (y1 > y0 ? 1 : -1);
+	int dy = std::abs(y1 - y0);
+	int error = dx >> 1;
+	int ystep = (y1 > y0 ? 1 : -1);
 	int y = y0;
 	for (int x = x0; x <= x1; x++) {
-		if (steep) {
-			image.set(y, x, color);
-		}
-		else {
-			image.set(x, y, color);
-		}
-		error2 += derror2;
-		if (error2 > dx) {
-			y += iy;
-			error2 -= (dx << 1);
+		image.set(steep ? y : x, steep ? x : y, color);
+		error -= dy;
+		if (error < 0) {
+			y += ystep;
+			error += dx;
 		}
 	}
+#else
+	bool steep = std::abs(x0 - x1) < std::abs(y0 - y1);
+	if (steep) {
+		std::swap(x0, y0);
+		std::swap(x1, y1);
+	}
+	if (x0 > x1) {
+		std::swap(x0, x1);
+		std::swap(y0, y1);
+	}
+	float dx = static_cast<float>(x1 - x0);
+	float dy = static_cast<float>(y1 - y0);
+	float gradient = dy / dx;
+
+	image.set(steep ? y0 : x0, steep ? x0 : y0, color);
+	image.set(steep ? y1 : x1, steep ? x1 : y1, color);
+
+	float y = y0 + gradient;
+	for (int x = x0 + 1; x <= x1 - 1; x++) {
+		float a2 = y - ((int)y);
+		float a1 = 1.0f - a2;
+		TGAColor c1, c2;
+		c1 = color * a1;
+		c2 = color * a2;
+		int xx = static_cast<int>(std::floor(x));
+		int yy = static_cast<int>(std::floor(y));
+		int yy1 = yy + 1;
+		image.set(steep ? yy : xx, steep ? xx : yy, c1);
+		image.set(steep ? yy1 : xx, steep ? xx : yy1, c2);
+
+		y += gradient;
+	}
+#endif
 }
 
 int main(int argc, char **argv)
