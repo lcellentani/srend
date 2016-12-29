@@ -1,5 +1,10 @@
 #include <cmath>
 #include "tgaimage.h"
+#include "model_obj.h"
+
+#include <glm/vec3.hpp>
+
+#include <memory>
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -73,11 +78,30 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color
 
 int main(int argc, char **argv)
 {
-	TGAImage image(100, 100, TGAImage::RGB);
+	std::shared_ptr<Model> model = std::make_shared<Model>();
+	model->Load("african_head/african_head.obj");
+
+	int width = 800;
+	int height = 800;
+
+	float halfWidth = static_cast<float>(width) * 0.5f;
+	float halfHeight = static_cast<float>(height) * 0.5f;
+
+	TGAImage image(width, height, TGAImage::RGB);
 	
-	line(13, 20, 80, 40, image, white);
-	line(20, 13, 40, 80, image, red);
-	line(80, 40, 13, 20, image, red);
+	for (size_t i = 0; i < model->NumberOfFaces(); i++) {
+		std::vector<int> face = model->GetFace(i);
+		for (int j = 0; j < 3; j++) {
+			glm::vec3 v0 = model->GetVertex(face[j]);
+			glm::vec3 v1 = model->GetVertex(face[(j + 1) % 3]);
+
+			int x0 = static_cast<int>((v0.x + 1.0f) * halfWidth);
+			int y0 = static_cast<int>((v0.y + 1.0f) * halfHeight);
+			int x1 = static_cast<int>((v1.x + 1.0f) * halfWidth);
+			int y1 = static_cast<int>((v1.y + 1.0f) * halfHeight);
+			line(x0, y0, x1, y1, image, white);
+		}
+	}
 
 	image.flip_vertically();
 	image.write_tga_file("output.tga");

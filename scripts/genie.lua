@@ -42,6 +42,7 @@ function mainProject(_name)
 
 	includedirs {
 --		path.join(SREND_DIR, "3rdparty/stb"),
+		path.join(SREND_DIR, "3rdparty"),
 		path.join(SREND_DIR, "sources/"),
 	}
 
