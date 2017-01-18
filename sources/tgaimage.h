@@ -37,6 +37,13 @@ struct TGAColor
 		bgra[3] = A;
 	}
 
+	TGAColor(float R, float G, float B, float A = 1.0f) : bgra(), bytespp(4) {
+		bgra[0] = static_cast<uint8_t>(B * 255.0f);
+		bgra[1] = static_cast<uint8_t>(G * 255.0f);
+		bgra[2] = static_cast<uint8_t>(R * 255.0f);
+		bgra[3] = static_cast<uint8_t>(A * 255.0f);
+	}
+
 	TGAColor(uint8_t v) : bgra(), bytespp(1) {
 		memset(bgra, 0, sizeof(uint8_t) * 4);
 		bgra[0] = v;
