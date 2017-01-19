@@ -2,8 +2,9 @@
 #include "tgaimage.h"
 #include "model_obj.h"
 #include "rasterizer.h"
+#include "shading.h"
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 #include <memory>
 #include <iostream>
@@ -67,11 +68,16 @@ void renderDiffuseModel(const std::shared_ptr<Model>& model, srend::Rasterizer& 
 	const glm::vec4 lightColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 	const glm::vec3 lightDirection = { 0.0f, 0.0f, -1.0f };
 
-	std::vector<glm::vec3> screen_coords;
-	screen_coords.reserve(3);
+	std::vector<srend::Vertex> vertices;
+	vertices.reserve(3);
 	std::vector<glm::vec3> world_coords;
 	world_coords.reserve(3);
 	
+	DiffuseShadingFunction diffuseFunction;
+	diffuseFunction.SetLightDirection(lightDirection);
+	diffuseFunction.SetLightColor(lightColor);
+	diffuseFunction.SetTexture(std::string("diffuseMap"), model->GetDiffuseMap());
+
 	for (size_t i = 0; i < model->NumberOfFaces(); i++) {
 		std::vector<int> face = model->GetFace(i);
 		for (int j = 0; j < 3; j++) {
@@ -79,19 +85,19 @@ void renderDiffuseModel(const std::shared_ptr<Model>& model, srend::Rasterizer& 
 
 			//glm::vec3 screen_coord((world_coords[j].x + 1.0f) * halfWidth + 0.5f, (world_coords[j].y + 1.0f) * halfHeight + 0.5f, world_coords[j].z);
 			//screen_coords[j] = screen_coord;
-			screen_coords[j] = world2screen(world_coords[j], halfWidth, halfHeight);
+			vertices[j].pos = world2screen(world_coords[j], halfWidth, halfHeight);
 		}
 
 		glm::vec3 v1 = world_coords[2] - world_coords[0];
 		glm::vec3 v2 = world_coords[1] - world_coords[0];
 		glm::vec3 normal = glm::cross(v1, v2);
 		normal = glm::normalize(normal);
-		float intensity = glm::dot(normal, lightDirection);
-		if (intensity >= 0) {
-			glm::vec4 c = lightColor * intensity;
-			c.a = 1.0f;
-			rasterizer.DrawTriangle(screen_coords[0], screen_coords[1], screen_coords[2], c);
-		}
+
+		vertices[0].norm = normal;
+		vertices[1].norm = normal;
+		vertices[2].norm = normal;
+
+		rasterizer.DrawTriangle(vertices[0], vertices[1], vertices[2], diffuseFunction);
 	}
 
 }

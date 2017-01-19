@@ -3,10 +3,20 @@
 #include <memory>
 #include <cstdint>
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
+
+class TGAImage;
+class ShadingFunction;
 
 namespace srend
 {
+
+struct Vertex
+{
+	glm::vec3 pos;
+	glm::vec2 uv0;
+	glm::vec3 norm;
+};
 
 class Rasterizer
 {
@@ -29,7 +39,7 @@ public:
 	
 	void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const glm::vec4& c);
 
-	void DrawTriangle(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& c);
+	void DrawTriangle(const Vertex& p0, const Vertex& p1, const Vertex& p2, ShadingFunction& shadingFunction);
 
 	bool Save(const char* filename);
 
