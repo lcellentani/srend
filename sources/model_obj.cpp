@@ -5,6 +5,9 @@
 #include <sstream>
 #include <cassert>
 
+namespace srend
+{
+
 Model::Model() : mVertices(), mNormals(), mTexcoord0(), mFaces() {
 
 }
@@ -24,13 +27,13 @@ bool Model::Load(const char* filename) {
 				std::istringstream iss(line.c_str());
 				if (line.compare(0, 2, "v ") == 0) {
 					char discard_v;
-					glm::vec3 vertex;
+					vec3f vertex;
 
 					iss >> discard_v;
 
-					iss >> vertex.x;
-					iss >> vertex.y;
-					iss >> vertex.z;
+					iss >> vertex.x();
+					iss >> vertex.y();
+					iss >> vertex.z();
 
 					mVertices.push_back(vertex);
 
@@ -41,24 +44,33 @@ bool Model::Load(const char* filename) {
 
 				}
 				else if (line.compare(0, 3, "vn ") == 0) {
+					char discard_f;
+					vec3f normal;
 
+					iss >> discard_f;
+					iss >> discard_f;
 
-					//iss >> trash >> trash;
-					//Vec3f n;
-					//for (int i = 0; i<3; i++) iss >> n[i];
-					//norms_.push_back(n);
+					iss >> normal.x();
+					iss >> normal.y();
+					iss >> normal.z();
+
+					mNormals.push_back(normal);
 				}
 				else if (line.compare(0, 3, "vt ") == 0) {
+					char discard_f;
+					vec2f uv;
 
+					iss >> discard_f;
+					iss >> discard_f;
 
-					//iss >> trash >> trash;
-					//Vec2f uv;
-					//for (int i = 0; i<2; i++) iss >> uv[i];
-					//uv_.push_back(uv);
+					iss >> uv.x();
+					iss >> uv.y();
+
+					mTexcoord0.push_back(uv);
 				}
 				else if (line.compare(0, 2, "f ") == 0) {
 					char discard_f;
-					std::vector<int> indices;
+					std::vector<uint32_t> indices;
 
 					iss >> discard_f;
 
@@ -66,18 +78,13 @@ bool Model::Load(const char* filename) {
 					int vtxIndex, texIndex, normIndex;
 					while (iss >> vtxIndex >> discard >> texIndex >> discard >> normIndex) {
 						vtxIndex--; // in wavefront obj all indices start at 1, not zero
+						texIndex--;
+						normIndex--;
 						indices.push_back(vtxIndex);
+						indices.push_back(texIndex);
+						indices.push_back(normIndex);
 					}
 					mFaces.push_back(indices);
-
-					//std::vector<Vec3i> f;
-					//Vec3i tmp;
-					//iss >> trash;
-					//while (iss >> tmp[0] >> trash >> tmp[1] >> trash >> tmp[2]) {
-					//	for (int i = 0; i<3; i++) tmp[i]--; // in wavefront obj all indices start at 1, not zero
-					//	f.push_back(tmp);
-					//}
-					//faces_.push_back(f);
 				}
 			}
 		}
@@ -98,22 +105,33 @@ size_t Model::NumberOfFaces() const {
 	return mFaces.size();
 }
 
-glm::vec3 Model::GetVertex(const int index) const {
-	assert(index >= 0 && index < static_cast<int>(mVertices.size()));
-	return mVertices[index];
+size_t Model::GetFaceVerticesCount(const int findex) const {
+	std::vector<uint32_t> face = mFaces[findex];
+	//return face.size();
+	return mFaces.size() / 3;
 }
 
-glm::vec3 Model::GetNormal(const int index) const {
-	assert(index >= 0 && index < static_cast<int>(mNormals.size()));
+vec3f Model::GetVertex(const int findex, const int vindex) const {
+	std::vector<uint32_t> face = mFaces[findex];
+	const int index = face[vindex * 3];
+	return mVertices[index];
+	//const int index = face[vindex];
+	//return mVertices[vindex];
+}
+
+vec3f Model::GetNormal(const int findex, const int vindex) const {
+	std::vector<uint32_t> face = mFaces[findex];
+	const int index = face[(vindex * 3) + 2];
 	return mNormals[index];
 }
 
-glm::vec2 Model::GetTexcoord0(const int index) const {
-	assert(index >= 0 && index < static_cast<int>(mTexcoord0.size()));
+vec2f Model::GetTexcoord0(const int findex, const int vindex) const {
+	std::vector<uint32_t> face = mFaces[findex];
+	const int index = face[(vindex * 3) + 1];
 	return mTexcoord0[index];
 }
 
-std::vector<int> Model::GetFace(const int index) const {
+std::vector<uint32_t> Model::GetFace(const int index) const {
 	assert(index >= 0 && index < static_cast<int>(mFaces.size()));
 	return mFaces[index];
 }
@@ -136,3 +154,5 @@ std::shared_ptr<TGAImage> Model::loadTexture(const std::string& filename, const 
 
 	return nullptr;
 }
+
+} // namespace srend

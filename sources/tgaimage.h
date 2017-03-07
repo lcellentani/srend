@@ -30,18 +30,20 @@ struct TGAColor
 		memset(bgra, 0, sizeof(uint8_t) * 4);
 	}
 
-	TGAColor(uint8_t R, uint8_t G, uint8_t B, uint8_t A = 255) : bgra(), bytespp(4) {
+	explicit TGAColor(uint8_t R, uint8_t G, uint8_t B, uint8_t A = 255) {
 		bgra[0] = B;
 		bgra[1] = G;
 		bgra[2] = R;
 		bgra[3] = A;
+		bytespp = 4;
 	}
 
-	TGAColor(float R, float G, float B, float A = 1.0f) : bgra(), bytespp(4) {
+	explicit TGAColor(float R, float G, float B, float A = 1.0f) {
 		bgra[0] = static_cast<uint8_t>(B * 255.0f);
 		bgra[1] = static_cast<uint8_t>(G * 255.0f);
 		bgra[2] = static_cast<uint8_t>(R * 255.0f);
 		bgra[3] = static_cast<uint8_t>(A * 255.0f);
+		bytespp = 4;
 	}
 
 	TGAColor(uint8_t v) : bgra(), bytespp(1) {
@@ -96,7 +98,7 @@ public:
 	}
 
 	uint16_t GetHeight() const {
-		mHeight;
+		return mHeight;
 	}
 
 	uint8_t GetBitPerPixels() const {

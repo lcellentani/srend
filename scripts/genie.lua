@@ -31,7 +31,6 @@ function copyLib()
 end
 
 function mainProject(_name)
-
 	project (_name)
 		uuid (os.uuid(_name))
 		kind "WindowedApp"
@@ -40,9 +39,11 @@ function mainProject(_name)
 
 	debugdir (path.join(SREND_DIR, "media/"))
 
+		defines {
+			"_HAS_ITERATOR_DEBUGGING=0"
+		}
+	
 	includedirs {
---		path.join(SREND_DIR, "3rdparty/stb"),
-		path.join(SREND_DIR, "3rdparty"),
 		path.join(SREND_DIR, "sources/"),
 	}
 
