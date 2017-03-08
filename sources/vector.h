@@ -255,12 +255,108 @@ template<typename T, int d> struct Vector {
 		return result;
 	}
 
+	inline Vector<T, d> operator+(const T& s) const {
+		Vector<T, d> result;
+		for (int i = 0; i < d; ++i) {
+			result[i] = data[i] + s;
+		}
+		return result;
+	}
+
+	inline Vector<T, d> operator-(const T& s) const {
+		Vector<T, d> result;
+		for (int i = 0; i < d; ++i) {
+			result[i] = data[i] - s;
+		}
+		return result;
+	}
+
 	inline Vector<T, d> operator*(const T& s) const {
 		Vector<T, d> result;
 		for (int i = 0; i < d; ++i) {
 			result[i] = data[i] * s;
 		}
 		return result;
+	}
+
+	inline Vector<T, d> operator/(const T& s) const {
+		Vector<T, d> result;
+		for (int i = 0; i < d; ++i) {
+			result[i] = data[i] / s;
+		}
+		return result;
+	}
+
+	inline Vector<T, d> operator+=(const Vector<T, d>& v) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] += v.data[i];
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator-=(const Vector<T, d>& v) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] += v.data[i];
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator*=(const Vector<T, d>& v) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] += v.data[i];
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator/=(const Vector<T, d>& v) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] += v.data[i];
+		}
+		return *this;
+	}
+
+
+
+	inline Vector<T, d> operator+=(const T& s) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] += s;
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator-=(const T& s) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] -= s;
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator*=(const T& s) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] *= s;
+		}
+		return *this;
+	}
+
+	inline Vector<T, d> operator/=(const T& s) const {
+		for (int i = 0; i < d; ++i) {
+			data[i] /= s;
+		}
+		return *this;
+	}
+
+	static inline T DotProduct(const Vector<T, d>& v1, const Vector<T, d>& v2) {
+		T result = 0;
+		for (int i = 0; i < d; ++i) {
+			result[i] += v1[i] * v2[i];
+		}
+		return result;
+	}
+
+	static inline Vector<T, 3> CrossProduct(const Vector<T, 3>& v1, const Vector<T, 3>& v2) {
+		return Vector<T, 3>(v1[1] * v2[2] - v1[2] * v2[1],
+							v1[2] * v2[0] - v1[0] * v2[2],
+							v1[0] * v2[1] - v1[1] * v2[0]);
 	}
 
 protected:
