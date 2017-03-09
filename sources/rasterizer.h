@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 #include "vector.h"
 
@@ -11,12 +12,14 @@ class ShadingFunction;
 namespace srend
 {
 
-//struct Vertex
-//{
-//	Vec3f pos;
-//	Vec2f uv0;
-//	Vec3f norm;
-//};
+struct Vertex
+{
+	Vertex() = default;
+
+	vec3f pos;
+	vec2f uv0;
+	vec3f norm;
+};
 
 class Rasterizer
 {
@@ -39,8 +42,9 @@ public:
 	
 	void DrawLine(const vec2f& p0, const vec2f& p1, const color_rgba8& color);
 
-	void DrawTriangle(vec2f& p0, vec2f& p1, vec2f& p2, ShadingFunction& shadingFunc);
-	//void DrawTriangle(const Vertex& p0, const Vertex& p1, const Vertex& p2, ShadingFunction& shadingFunction);
+	void DrawTriangle(const vec2f& p0, const vec2f& p1, const vec2f& p2, ShadingFunction& shadingFunc);
+	void DrawTriangle(const std::vector<vec3f>& pts, ShadingFunction& shadingFunc);
+	void DrawTriangle(const std::vector<Vertex>& pts, ShadingFunction& shadingFunction);
 
 	bool Save(const char* filename);
 

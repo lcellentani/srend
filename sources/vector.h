@@ -32,13 +32,13 @@ template<typename T, int d> struct Vector {
 	}
 
 	inline Vector(const T& s0, const T& s1) {
-		static_assert(d == 2, "size needs to be at least 2");
+		static_assert(d >= 2, "size needs to be at least 2");
 		data[0] = s0;
 		data[1] = s1;
 	}
 
 	inline Vector(const T& s0, const T& s1, const T& s2) {
-		static_assert(d == 3, "size needs to be at least 3");
+		static_assert(d >= 3, "size needs to be at least 3");
 		data[0] = s0;
 		data[1] = s1;
 		data[2] = s2;
@@ -348,7 +348,7 @@ template<typename T, int d> struct Vector {
 	static inline T DotProduct(const Vector<T, d>& v1, const Vector<T, d>& v2) {
 		T result = 0;
 		for (int i = 0; i < d; ++i) {
-			result[i] += v1[i] * v2[i];
+			result += v1[i] * v2[i];
 		}
 		return result;
 	}
@@ -358,6 +358,18 @@ template<typename T, int d> struct Vector {
 							v1[2] * v2[0] - v1[0] * v2[2],
 							v1[0] * v2[1] - v1[1] * v2[0]);
 	}
+
+	inline T LengthSquared() const { return DotProduct(*this, *this); }
+
+	inline T Length() const { return std::sqrt(LengthSquared()); }
+
+	inline T Normalize() {
+		const T length = Length();
+		*this = *this * (1 / length);
+		return length;
+	}
+
+	inline Vector<T, d> Normalized() const { return *this * (1 / Length()); }
 
 protected:
 	T data[d];

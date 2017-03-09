@@ -46,12 +46,23 @@ static const TGAColor cMANGENTA(1.0f, 0.0f, 1.0f);
 }*/
 
 srend::vec3f Barycentric(const srend::vec3f& v0, const srend::vec3f& v1, const srend::vec3f& v2, const srend::vec3f& p) {
-	srend::vec3f s0(v2.x() - v0.x(), v1.x() - v0.x(), v0.x() - p.x());
-	srend::vec3f s1(v2.y() - v0.y(), v1.y() - v0.y(), v0.y() - p.y());
-	srend::vec3f u = srend::vec3f::CrossProduct(s0, s1);
-	if (std::abs(u[2]) > 1e-2)
-		return srend::vec3f(1.f - (u.x() + u.y()) / u.z(), u.y() / u.z(), u.x() / u.z());
-	return srend::vec3f(-1.0f, 1.0f, 1.0f); // triangle is degenerate, in this case return smth with negative coordinates 
+	srend::vec3f s[2];
+	for (int i = 2; i--; ) {
+		s[i][0] = v2[i] - v0[i];
+		s[i][1] = v1[i] - v0[i];
+		s[i][2] = v0[i] - p[i];
+	}
+	srend::vec3f u = srend::vec3f::CrossProduct(s[0], s[1]);
+	if (std::abs(u[2])>1e-2) // dont forget that u[2] is integer. If it is zero then triangle ABC is degenerate
+		return srend::vec3f(1.0f - (u.x() + u.y()) / u.z(), u.y() / u.z(), u.x() / u.z());
+	return srend::vec3f(-1.0f, 1.0f, 1.0f);
+	
+	//srend::vec3f s0(v2.x() - v0.x(), v1.x() - v0.x(), v0.x() - p.x());
+	//srend::vec3f s1(v2.y() - v0.y(), v1.y() - v0.y(), v0.y() - p.y());
+	//srend::vec3f u = srend::vec3f::CrossProduct(s0, s1);
+	//if (std::abs(u[2]) > 1e-2)
+	//	return srend::vec3f(1.f - (u.x() + u.y()) / u.z(), u.y() / u.z(), u.x() / u.z());
+	//return srend::vec3f(-1.0f, 1.0f, 1.0f); // triangle is degenerate, in this case return smth with negative coordinates 
 }
 
 }
@@ -233,8 +244,7 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, Vec2i uv0, Vec2i uv1, Vec2i uv2, TGA
 }
 */
 
-void Rasterizer::DrawTriangle(vec2f& p0, vec2f& p1, vec2f& p2, ShadingFunction& shadingFunc) {
-#if 0
+void Rasterizer::DrawTriangle(const vec2f& p0, const vec2f& p1, const vec2f& p2, ShadingFunction& shadingFunc) {
 	if (p0.y() == p1.y() && p0.y() == p2.y()) return;
 
 	vec2f t0(p0);
@@ -269,48 +279,49 @@ void Rasterizer::DrawTriangle(vec2f& p0, vec2f& p1, vec2f& p2, ShadingFunction& 
 		vec2f B = secondHalf ? t1 + (d_2_1 * beta) : t0 + (d_1_0 * beta);
 		if (A.x() > B.x()) std::swap(A, B);
 		for (float j = A.x(); j <= B.x(); j++) {
-			uint16_t x = static_cast<uint16_t>(std::roundf(j));
-			uint16_t y = static_cast<uint16_t>(std::roundf(t0.y() + i));
+			float x_ = j;
+			float y_ = t0.y() + i;
+			uint16_t x = static_cast<uint16_t>(std::roundf(x_));
+			uint16_t y = static_cast<uint16_t>(std::roundf(y_));
 			mImpl->image->SetPixel(x, y, finalColor);
 		}
 	}
-#else
-	vec3f t0(p0);
-	vec3f t1(p1);
-	vec3f t2(p2);
+}
 
+void Rasterizer::DrawTriangle(const std::vector<vec3f>& pts, ShadingFunction& shadingFunc) {
 	color_rgba8 color = shadingFunc();
 	TGAColor finalColor(color.bgra(), color_rgba8::size);
 
-	float minX = std::min(std::min(t0.x(), t1.x()), t2.x());
-	float minY = std::min(std::min(t0.y(), t1.y()), t2.y());
-	float maxX = std::max(std::max(t0.x(), t1.x()), t2.x());
-	float maxY = std::max(std::max(t0.y(), t1.y()), t2.y());
+	vec2f bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+	vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+	vec2f clamp(mImpl->width - 1.0f, mImpl->height - 1.0f);
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
+			bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+		}
+	}
 
-	minX = std::max(minX, 0.0f);
-	minY = std::max(minY, 0.0f);
-	maxX = std::min(maxX, mImpl->width - 1.0f);
-	maxY = std::min(maxY, mImpl->height - 1.0f);
-
-	vec3f p(0.0f, 0.0f, 0.0f);
-	for (p.x() = minX; p.x() <= maxX; p.x()++) {
-		for (p.y() = minY; p.y() <= maxY; p.y()++) {
-			vec3f bc_screen = Barycentric(t0, t1, t2, p);
+	vec3f p{ 0.0f, 0.0f, 0.0f };
+	for (p.x() = bboxmin.x(); p.x() <= bboxmax.x(); p.x()++) {
+		for (p.y() = bboxmin.y(); p.y() <= bboxmax.y(); p.y()++) {
+			vec3f bc_screen = Barycentric(pts[0], pts[1], pts[2], p);
 			if (bc_screen.x() < 0 || bc_screen.y() < 0 || bc_screen.z() < 0) continue;
 
 			p.z() = 0.0f;
-			p.z() += t0.z() * bc_screen[0];
-			p.z() += t1.z() * bc_screen[1];
-			p.z() += t2.z() * bc_screen[2];
+			for (int i = 0; i < 3; i++) p.z() += pts[i][2] * bc_screen[i];
 
-			//uint64_t idx = int(p.x() + p.y() * mImpl->width);
-			//if (mImpl->zbuffer[idx] < p.z) {
-			//	mImpl->zbuffer[idx] = p.z;
+			uint64_t idx = uint64_t(p.x() + p.y() * mImpl->width);
+			if (mImpl->zbuffer[idx] < p.z()) {
+				mImpl->zbuffer[idx] = p.z();
 				mImpl->image->SetPixel(p.x(), p.y(), finalColor);
-			//}
+			}
 		}
 	}
-#endif
+}
+
+void Rasterizer::DrawTriangle(const std::vector<Vertex>& pts, ShadingFunction& shadingFunction) {
+
 }
 
 /*void Rasterizer::DrawTriangle(const Vertex& p0, const Vertex& p1, const Vertex& p2, ShadingFunction& shadingFunction)

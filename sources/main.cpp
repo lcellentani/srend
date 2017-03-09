@@ -116,7 +116,7 @@ void renderDiffuseModelPerspectiveMode(const std::shared_ptr<Model>& model, sren
 }
 */
 
-#define TEST 2
+#define TEST 4
 
 int main(int argc, char **argv)
 {
@@ -195,15 +195,83 @@ int main(int argc, char **argv)
 	}
 #elif TEST == 3
 	{
-		std::shared_ptr<Model> model = std::make_shared<Model>();
+		std::shared_ptr<srend::Model> model = std::make_shared<srend::Model>();
 		model->Load("african_head/african_head.obj");
 
+		srend::color_rgba8 cWhite(255, 255, 255, 255);
 		const int width = 800;
 		const int height = 800;
+		const float halfWidth = width * 0.5f;
+		const float halfHeight = height * 0.5f;
+
 		rasterizer.SetFramebufferSize(width, height);
-		renderDiffuseModelOrthoMode(model, rasterizer);
+
+		ColorFunction colorOperator;
+		srend::vec3f lightDir(0.0f, 0.0f, -1.0f);
+		srend::vec2f screen_coords[3];
+		srend::vec3f world_coords[3];
+		for (size_t i = 0; i < model->NumberOfFaces(); i++) {
+			for (int j = 0; j < 3; j++) {
+				srend::vec3f v = model->GetVertex(i, j);
+
+				screen_coords[j] = srend::vec2f(int((v.x() + 1.0f) * halfWidth + 0.5f), int((v.y() + 1.0f) * halfHeight + 0.5f));
+				world_coords[j] = v;
+			}
+
+			srend::vec3f n = srend::vec3f::CrossProduct((world_coords[2] - world_coords[0]), (world_coords[1] - world_coords[0]));
+			n.Normalize();
+			float intensity = srend::vec3f::DotProduct(n, lightDir);
+			if (intensity > 0) {
+				uint8_t r = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				uint8_t g = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				uint8_t b = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				srend::color_rgba8 color(r, g, b);
+				colorOperator.SetColor(color);
+
+				rasterizer.DrawTriangle(screen_coords[0], screen_coords[1], screen_coords[2], colorOperator);
+			}
+		}
 	}
 #elif TEST == 4
+	{
+		std::shared_ptr<srend::Model> model = std::make_shared<srend::Model>();
+		model->Load("african_head/african_head.obj");
+
+		srend::color_rgba8 cWhite(255, 255, 255, 255);
+		const int width = 800;
+		const int height = 800;
+		const float halfWidth = width * 0.5f;
+		const float halfHeight = height * 0.5f;
+
+		rasterizer.SetFramebufferSize(width, height);
+
+		ColorFunction colorOperator;
+		srend::vec3f lightDir(0.0f, 0.0f, -1.0f);
+		std::vector<srend::vec3f> screen_coords{ srend::vec3f(), srend::vec3f(), srend::vec3f() };
+		srend::vec3f world_coords[3];
+		for (size_t i = 0; i < model->NumberOfFaces(); i++) {
+			for (int j = 0; j < 3; j++) {
+				srend::vec3f v = model->GetVertex(i, j);
+
+				screen_coords[j] = srend::vec3f(int((v.x() + 1.0f) * halfWidth + 0.5f), int((v.y() + 1.0f) * halfHeight + 0.5f), v.z());
+				world_coords[j] = v;
+			}
+
+			srend::vec3f n = srend::vec3f::CrossProduct((world_coords[2] - world_coords[0]), (world_coords[1] - world_coords[0]));
+			n.Normalize();
+			float intensity = srend::vec3f::DotProduct(n, lightDir);
+			if (intensity > 0) {
+				uint8_t r = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				uint8_t g = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				uint8_t b = static_cast<uint8_t>(std::roundf((intensity * 255.0f)));
+				srend::color_rgba8 color(r, g, b);
+				colorOperator.SetColor(color);
+
+				rasterizer.DrawTriangle(screen_coords, colorOperator);
+			}
+		}
+	}
+#elif TEST == 5
 	{
 		const int width = 800;
 		const int height = 16;
@@ -233,7 +301,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-#elif TEST == 5
+#elif TEST == 6
 	const int width = 100;
 	const int height = 100;
 	rasterizer.SetFramebufferSize(width, height);
@@ -288,7 +356,7 @@ int main(int argc, char **argv)
 		}
 		break;
 	}
-#elif TEST == 6
+#elif TEST == 7
 	std::shared_ptr<Model> model = std::make_shared<Model>();
 	model->Load("african_head/african_head.obj");
 
