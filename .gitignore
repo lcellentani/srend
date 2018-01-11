@@ -1,9 +1,13 @@
-.build
-.debug
-.DS_Store
 .svn
-tags
 .gdb_history
+.DS_Store
+
+.build/
+.vs/
+
+Win32/
+Debug/
+Release/
 
 # Compiled Object files
 *.slo
@@ -19,10 +23,8 @@ tags
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
+*.ilk
+*.pdb
 
 # Compiled Static libraries
 *.lai
@@ -34,5 +36,17 @@ tags
 *.exe
 *.out
 *.app
+*.ilk
+*.pdb
+*.bat
 
-media
+sources/Config.h
+
+!/3rdparty/gles/angle/lib/**
+!/3rdparty/gles/angle/dll/**
+!/3rdparty/gles/imgtech/lib/**
+!/3rdparty/gles/imgtech/dll/**
+!/bin/libEGL.dll
+!/bin/libGLES_CM.dll
+!/bin/libGLESv2.dll
+!media/**
