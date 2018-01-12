@@ -25,6 +25,7 @@ file(GLOB ALL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.h*")
 
 add_executable(${TARGET_NAME}
 	${ALL_INCLUDES}
+	sources/events.cpp
 	sources/display.cpp
     sources/main.cpp
 	sources/rasterizer.cpp

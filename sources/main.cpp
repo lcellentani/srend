@@ -2,8 +2,6 @@
 #include "events.h"
 #include <memory>
 
-#include "SDL.h"
-
 void updater(uint32_t width, uint32_t height, uint8_t depth, std::vector<uint8_t>& brga) {
 	uint32_t size = width * height * depth;
 	for (uint32_t n = 0; n < size; n += depth) {
@@ -19,15 +17,16 @@ int main(int, char**) {
 	if (display->IsValid()) {
 		display->SetFramebufferUpdater(updater);
 
-		SDL_Event e;
+		std::unique_ptr<EventsHandler> eventsHandler = std::make_unique<EventsHandler>();
+
 		bool requestExit = false;
 		while (!requestExit) {
-			while (SDL_PollEvent(&e)) {
-				if (e.type == SDL_QUIT || e.type == SDL_KEYDOWN || e.type == SDL_MOUSEBUTTONDOWN) {
-					requestExit = true;
-				}
+			std::unique_ptr<Event> event = eventsHandler->Pool();
+			switch (event->mType) {
+			case Event::Exit:
+				requestExit = true;
 			}
-
+		
 			display->Present();
 		}
 	}
