@@ -1,24 +1,28 @@
 #include "display.h"
 #include "events.h"
-#include <memory>
+#include "rasterizer.h"
+#include "timing.h"
 
-void updater(uint32_t width, uint32_t height, uint8_t depth, std::vector<uint8_t>& brga) {
-	uint32_t size = width * height * depth;
-	for (uint32_t n = 0; n < size; n += depth) {
-		brga[n] = 0;
-		brga[n + 1] = 0;
-		brga[n + 2] = 255;
-		brga[n + 3] = 255;
-	}
-}
+#include <memory>
+#include <iostream>
+
+using namespace srend;
 
 int main(int, char**) {
-	std::unique_ptr<Display> display = std::make_unique<Display>(800, 600, "srend");
+	const uint32_t cWidth = 400;
+	const uint32_t cHeight = 300;
+	std::unique_ptr<Display> display = std::make_unique<Display>(cWidth, cHeight, "srend");
 	if (display->IsValid()) {
-		display->SetFramebufferUpdater(updater);
-
 		std::unique_ptr<EventsHandler> eventsHandler = std::make_unique<EventsHandler>();
+		std::unique_ptr<Rasterizer> rasterizer = std::make_unique<Rasterizer>();
+		rasterizer->SetViewport(cWidth, cHeight);
+		
+		display->SetFramebufferUpdater([&rasterizer](uint32_t /*width*/, uint32_t /*height*/, uint8_t /*depth*/, std::vector<uint8_t>& brga) {
+			brga = rasterizer->GetColorBuffer();
+		});
 
+		int64_t lastTime = GetTime();
+		
 		bool requestExit = false;
 		while (!requestExit) {
 			std::unique_ptr<Event> event = eventsHandler->Pool();
@@ -27,6 +31,17 @@ int main(int, char**) {
 				requestExit = true;
 			}
 		
+			int64_t now = GetTime();
+			float delta = ((float)(now - lastTime) / (float)GetFrequency()) * 1000.0f;
+			std::cout << delta << std::endl;
+			lastTime = now;
+
+			rasterizer->DrawPoint(10, 10, Color{ 255, 0, 0, 255 });
+
+			rasterizer->DrawLine(13, 20, 80, 40, Color{ 255, 255, 255, 255 });
+			rasterizer->DrawLine(20, 13, 40, 80, Color{ 255, 0, 0, 255 });
+			rasterizer->DrawLine(80, 40, 13, 20, Color{ 255, 0, 0, 255 });
+
 			display->Present();
 		}
 	}

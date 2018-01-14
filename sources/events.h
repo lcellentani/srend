@@ -2,6 +2,9 @@
 
 #include <memory>
 
+namespace srend
+{
+
 class Event {
 public:
 	enum Type {
@@ -32,3 +35,5 @@ public:
 
 	std::unique_ptr<Event> Pool();
 };
+
+} // namespace srend

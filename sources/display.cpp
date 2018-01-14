@@ -3,6 +3,9 @@
 
 #include <iostream>
 
+namespace srend
+{
+
 struct Display::Impl {
 	Impl(uint32_t width, uint32_t height, const char* caption) : mWidth(width), mHeight(height) {
 		if (SDL_Init(SDL_INIT_VIDEO) == 0) {
@@ -19,6 +22,7 @@ struct Display::Impl {
 					}
 
 					SDL_SetRenderDrawColor(mRenderer, 80, 80, 80, SDL_ALPHA_OPAQUE);
+					SDL_GL_SetSwapInterval(1);
 
 					mFrameBuffer = SDL_CreateTexture(mRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, mWidth, mHeight);
 					mColorData.resize(mWidth * mHeight * 4);
@@ -84,3 +88,5 @@ void Display::SetFramebufferUpdater(std::function<void(uint32_t width, uint32_t 
 	if (!mImpl->mInitialized) { return; }
 	mImpl->mUpdaterFunc = func;
 }
+
+} // namespace srend

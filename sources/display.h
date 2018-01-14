@@ -4,6 +4,9 @@
 #include <functional>
 #include <vector>
 
+namespace srend
+{
+
 class Display final {
 public:
 	Display(uint32_t width, uint32_t height, const char* caption);
@@ -19,3 +22,5 @@ private:
 	struct Impl;
 	Impl* mImpl;
 };
+
+} // namespace srend
