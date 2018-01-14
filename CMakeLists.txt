@@ -21,14 +21,17 @@ include_directories("${PROJECT_SOURCE_DIR}/3rdparty/glm")
 
 link_directories("${PROJECT_SOURCE_DIR}/3rdparty/sdl/lib/x86")
 
-file(GLOB ALL_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.h*")
+file(GLOB SREND_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.h*")
+
+list(APPEND SREND_ALL_INCLUDES ${SREND_INCLUDES}) 
 
 add_executable(${TARGET_NAME}
-	${ALL_INCLUDES}
+	${SREND_ALL_INCLUDES}
 	sources/events.cpp
 	sources/display.cpp
     sources/main.cpp
 	sources/rasterizer.cpp
+	sources/timing.cpp
 )
 
 target_link_libraries(${TARGET_NAME}
@@ -45,7 +48,7 @@ set_target_properties(${TARGET_NAME}
 )
 
 if(MSVC)
-	source_group("Header Files\\" FILES ${ALL_INCLUDES}) 
+	source_group("Header Files\\" FILES ${SREND_INCLUDES}) 
 
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
