@@ -18,18 +18,24 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/sdl/include")
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/glm")
+include_directories("${PROJECT_SOURCE_DIR}/3rdparty/tinyobjloader")
 
 link_directories("${PROJECT_SOURCE_DIR}/3rdparty/sdl/lib/x86")
 
 file(GLOB SREND_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.h*")
+file(GLOB SREND_TINYOBJLOADER_INCLUDES "${PROJECT_SOURCE_DIR}/3rdparty/tinyobjloader/*.h*")
+file(GLOB SREND_TINYOBJLOADER_SOURCES "${PROJECT_SOURCE_DIR}/3rdparty/tinyobjloader/*.c*")
 
 list(APPEND SREND_ALL_INCLUDES ${SREND_INCLUDES}) 
+list(APPEND SREND_ALL_INCLUDES ${SREND_TINYOBJLOADER_INCLUDES}) 
 
 add_executable(${TARGET_NAME}
 	${SREND_ALL_INCLUDES}
+	${PROJECT_SOURCE_DIR}/3rdparty/tinyobjloader/tiny_obj_loader.cc
 	sources/events.cpp
 	sources/display.cpp
-    sources/main.cpp
+	sources/main.cpp
+	sources/meshloader.cpp
 	sources/rasterizer.cpp
 	sources/timing.cpp
 )
@@ -49,6 +55,8 @@ set_target_properties(${TARGET_NAME}
 
 if(MSVC)
 	source_group("Header Files\\" FILES ${SREND_INCLUDES}) 
+	source_group("Header Files\\tinyobjloader" FILES ${SREND_TINYOBJLOADER_INCLUDES})
+	source_group("Source Files\\tinyobjloader" FILES ${SREND_TINYOBJLOADER_SOURCES})
 
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
