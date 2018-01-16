@@ -12,8 +12,8 @@
 using namespace srend;
 
 int main(int, char**) {
-	const uint32_t cWidth = 400;
-	const uint32_t cHeight = 400;
+	const uint32_t cWidth = 200;
+	const uint32_t cHeight = 200;
 	std::unique_ptr<Display> display = std::make_unique<Display>(cWidth, cHeight, "srend");
 	if (display->IsValid()) {
 		std::unique_ptr<Model> model = std::make_unique<Model>();
@@ -46,9 +46,9 @@ int main(int, char**) {
 			lastTime = now;
 
 			rasterizer->DrawPoint(10, 10, Color{ 255, 0, 0, 255 });
-			rasterizer->DrawLine(13, 20, 80, 40, Color{ 255, 255, 255, 255 });
-			rasterizer->DrawLine(20, 13, 40, 80, Color{ 255, 0, 0, 255 });
-			rasterizer->DrawLine(80, 40, 13, 20, Color{ 255, 0, 0, 255 });
+			rasterizer->DrawLine({ 13.f, 20.f }, { 80.f, 40.f }, Color{ 255, 255, 255, 255 });
+			rasterizer->DrawLine({ 20.f, 13.f }, { 40.f, 80.f }, Color{ 255, 0, 0, 255 });
+			rasterizer->DrawLine({ 80.f, 40.f }, { 13.f, 20.f }, Color{ 255, 0, 0, 255 });
 			
 			auto& shape = model->GetShape(0);
 			float halfWidth = (float)cWidth / 2.0f;
@@ -58,15 +58,15 @@ int main(int, char**) {
 				for (std::size_t n = 0; n < 3; n++) {
 					auto pt0 = face.mVertices[n];
 					auto pt1 = face.mVertices[(n + 1) % 3];
-
-					int32_t x0 = (int32_t)((pt0.mPosition.x + 1.0f) * halfWidth);
-					int32_t y0 = (int32_t)((pt0.mPosition.y + 1.0f) * halfHeight);
-					int32_t x1 = (int32_t)((pt1.mPosition.x + 1.0f) * halfWidth);
-					int32_t y1 = (int32_t)((pt1.mPosition.y + 1.0f) * halfHeight);
-
-					rasterizer->DrawLine(x0, y0, x1, y1, Color{ 255, 255, 255, 255 });
+					glm::vec2 p0((pt0.mPosition.x + 1.0f) * halfWidth, (pt0.mPosition.y + 1.0f) * halfHeight);
+					glm::vec2 p1((pt1.mPosition.x + 1.0f) * halfWidth, (pt1.mPosition.y + 1.0f) * halfHeight);
+					rasterizer->DrawLine(p0, p1, Color{ 255, 255, 255, 255 });
 				}
 			}
+
+			rasterizer->DrawTriangle({ 10, 70 }, { 50, 160 }, { 70, 80 }, { 255, 0, 0, 255 });
+			rasterizer->DrawTriangle(glm::ivec2(180, 50), glm::ivec2(150, 1), glm::ivec2(70, 180), { 255, 255, 255, 255 });
+			rasterizer->DrawTriangle(glm::ivec2(180, 150), glm::ivec2(120, 160), glm::ivec2(130, 180), { 0, 255, 0, 255 });
 
 			display->Present();
 		}

@@ -4,6 +4,8 @@
 #include <vector>
 #include <array>
 
+#include "glm/vec2.hpp"
+
 namespace srend
 {
 
@@ -26,9 +28,11 @@ public:
 
 	const std::vector<uint8_t>& GetColorBuffer() const;
 
-	void DrawPoint(uint32_t x, uint32_t y, const Color& color);
+	void DrawPoint(int32_t x, int32_t y, const Color& color);
 
-	void DrawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, const Color& color);
+	void DrawLine(glm::vec2 p0, glm::vec2 p1, const Color& color);
+
+	void DrawTriangle(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color& color);
 
 private:
 	uint32_t mWidth = 0;
