@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <vector>
-#include <array>
 
 #include "glm/vec2.hpp"
 
@@ -30,7 +29,7 @@ public:
 
 	void DrawPoint(int32_t x, int32_t y, const Color& color);
 
-	void DrawLine(glm::vec2 p0, glm::vec2 p1, const Color& color);
+	void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color& color);
 
 	void DrawTriangle(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color& color);
 

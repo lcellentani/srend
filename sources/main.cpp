@@ -6,14 +6,18 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <iostream>
+#include <array>
+
+#include "glm\geometric.hpp"
 
 using namespace srend;
 
 int main(int, char**) {
-	const uint32_t cWidth = 200;
-	const uint32_t cHeight = 200;
+	const uint32_t cWidth = 600;
+	const uint32_t cHeight = 600;
 	std::unique_ptr<Display> display = std::make_unique<Display>(cWidth, cHeight, "srend");
 	if (display->IsValid()) {
 		std::unique_ptr<Model> model = std::make_unique<Model>();
@@ -45,7 +49,7 @@ int main(int, char**) {
 			std::cout << delta << std::endl;
 			lastTime = now;
 
-			rasterizer->DrawPoint(10, 10, Color{ 255, 0, 0, 255 });
+			/*rasterizer->DrawPoint(10, 10, Color{ 255, 0, 0, 255 });
 			rasterizer->DrawLine({ 13.f, 20.f }, { 80.f, 40.f }, Color{ 255, 255, 255, 255 });
 			rasterizer->DrawLine({ 20.f, 13.f }, { 40.f, 80.f }, Color{ 255, 0, 0, 255 });
 			rasterizer->DrawLine({ 80.f, 40.f }, { 13.f, 20.f }, Color{ 255, 0, 0, 255 });
@@ -62,11 +66,34 @@ int main(int, char**) {
 					glm::vec2 p1((pt1.mPosition.x + 1.0f) * halfWidth, (pt1.mPosition.y + 1.0f) * halfHeight);
 					rasterizer->DrawLine(p0, p1, Color{ 255, 255, 255, 255 });
 				}
-			}
+			}*/
 
-			rasterizer->DrawTriangle({ 10, 70 }, { 50, 160 }, { 70, 80 }, { 255, 0, 0, 255 });
-			rasterizer->DrawTriangle(glm::ivec2(180, 50), glm::ivec2(150, 1), glm::ivec2(70, 180), { 255, 255, 255, 255 });
-			rasterizer->DrawTriangle(glm::ivec2(180, 150), glm::ivec2(120, 160), glm::ivec2(130, 180), { 0, 255, 0, 255 });
+			//rasterizer->DrawTriangle({ 10, 70 }, { 50, 160 }, { 70, 80 }, { 255, 0, 0, 255 });
+			//rasterizer->DrawTriangle({ 180, 50 }, { 150, 1 }, { 70, 180 }, { 255, 255, 255, 255 });
+			//rasterizer->DrawTriangle({ 180, 150 }, { 120, 160 }, { 130, 180 }, { 0, 255, 0, 255 });
+
+			glm::vec3 lightDirection(0.0f, 0.0f, -1.0f);
+			auto& shape = model->GetShape(0);
+			float halfWidth = (float)cWidth * 0.5f;
+			float halfHeight = (float)cHeight * 0.5f;
+			std::array<glm::vec2, 3> screenCoords;
+			std::array<glm::vec3, 3> worldCoords;
+			for (std::size_t i = 0; i < shape.mFaces.size(); i++) {
+				auto face = shape.mFaces[i];
+				for (std::size_t n = 0; n < 3; n++) {
+					auto p = face.mVertices[n];
+					int x = (int)((p.mPosition.x + 1.0f) * halfWidth);
+					int y = (int)((p.mPosition.y + 1.0f) * halfHeight);
+					screenCoords[n] = glm::vec2(x, y);
+					worldCoords[n] = p.mPosition;
+				}
+				glm::vec3 normal = glm::normalize(glm::cross(glm::vec3(worldCoords[2] - worldCoords[0]), glm::vec3(worldCoords[1] - worldCoords[0])));
+				float intensity = glm::dot(normal, lightDirection);
+				if (intensity > 0) {
+					uint8_t u = (uint8_t)(intensity * 255.0f);
+					rasterizer->DrawTriangle(screenCoords[0], screenCoords[1], screenCoords[2], { u, u, u, 255 });
+				}
+			}
 
 			display->Present();
 		}
