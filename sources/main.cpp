@@ -76,15 +76,15 @@ int main(int, char**) {
 			auto& shape = model->GetShape(0);
 			float halfWidth = (float)cWidth * 0.5f;
 			float halfHeight = (float)cHeight * 0.5f;
-			std::array<glm::vec2, 3> screenCoords;
+			std::array<glm::vec3, 3> screenCoords;
 			std::array<glm::vec3, 3> worldCoords;
 			for (std::size_t i = 0; i < shape.mFaces.size(); i++) {
 				auto face = shape.mFaces[i];
 				for (std::size_t n = 0; n < 3; n++) {
 					auto p = face.mVertices[n];
-					int x = (int)((p.mPosition.x + 1.0f) * halfWidth);
-					int y = (int)((p.mPosition.y + 1.0f) * halfHeight);
-					screenCoords[n] = glm::vec2(x, y);
+					int x = (int)((p.mPosition.x + 1.0f) * halfWidth + 0.5f);
+					int y = (int)((p.mPosition.y + 1.0f) * halfHeight + 0.5f);
+					screenCoords[n] = glm::vec3(x, y, p.mPosition.z);
 					worldCoords[n] = p.mPosition;
 				}
 				glm::vec3 normal = glm::normalize(glm::cross(glm::vec3(worldCoords[2] - worldCoords[0]), glm::vec3(worldCoords[1] - worldCoords[0])));

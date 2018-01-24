@@ -31,12 +31,13 @@ public:
 
 	void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color& color);
 
-	void DrawTriangle(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color& color);
+	void DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, const Color& color);
 
 private:
 	uint32_t mWidth = 0;
 	uint32_t mHeight = 0;
 	std::vector<uint8_t> mColors;
+	std::vector<float> mDepthBuffer;
 };
 
 } // namespace srend
