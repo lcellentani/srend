@@ -13,6 +13,9 @@
 
 #include "glm\geometric.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 using namespace srend;
 
 int main(int, char**) {
@@ -77,6 +80,7 @@ int main(int, char**) {
 			float halfWidth = (float)cWidth * 0.5f;
 			float halfHeight = (float)cHeight * 0.5f;
 			std::array<glm::vec3, 3> screenCoords;
+			std::array<glm::vec2, 3> texcoord0;
 			std::array<glm::vec3, 3> worldCoords;
 			for (std::size_t i = 0; i < shape.mFaces.size(); i++) {
 				auto face = shape.mFaces[i];
@@ -86,12 +90,13 @@ int main(int, char**) {
 					int y = (int)((p.mPosition.y + 1.0f) * halfHeight + 0.5f);
 					screenCoords[n] = glm::vec3(x, y, p.mPosition.z);
 					worldCoords[n] = p.mPosition;
+					texcoord0[n] = p.mTexcoord;
 				}
 				glm::vec3 normal = glm::normalize(glm::cross(glm::vec3(worldCoords[2] - worldCoords[0]), glm::vec3(worldCoords[1] - worldCoords[0])));
 				float intensity = glm::dot(normal, lightDirection);
 				if (intensity > 0) {
 					uint8_t u = (uint8_t)(intensity * 255.0f);
-					rasterizer->DrawTriangle(screenCoords[0], screenCoords[1], screenCoords[2], { u, u, u, 255 });
+					rasterizer->DrawTriangle(screenCoords[0], screenCoords[1], screenCoords[2], texcoord0[0], texcoord0[1], texcoord0[2], { u, u, u, 255 });
 				}
 			}
 

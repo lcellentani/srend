@@ -19,6 +19,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR})
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/sdl/include")
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/glm")
 include_directories("${PROJECT_SOURCE_DIR}/3rdparty/tinyobjloader")
+include_directories("${PROJECT_SOURCE_DIR}/3rdparty/stb")
 
 link_directories("${PROJECT_SOURCE_DIR}/3rdparty/sdl/lib/x86")
 
