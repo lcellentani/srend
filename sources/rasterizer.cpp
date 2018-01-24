@@ -86,52 +86,17 @@ void Rasterizer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color&
 	}
 }
 
-glm::vec3 barycentric(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p) {
-	glm::vec3 a(p2.x - p0.x, p1.x - p0.x, p0.x - p.x);
-	glm::vec3 b(p2.y - p0.y, p1.y - p0.y, p0.y - p.y);
-	glm::vec3 c = glm::cross(a, b);
-	if (std::abs(c.z) > 1e-2) {
-		float ic = 1.0f / c.z;
-		return glm::vec3(1.0f - (c.x + c.y) * ic, c.y * ic, c.x * ic);
-	}
-	return glm::vec3(-1.0f, 1.0f, 1.0f);
-
-	/*glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f); //
-	glm::vec3 e1(p2.x - p0.x, p2.y - p0.y, 0.0f); //
-	glm::vec3 e2(p.x - p0.x, p.y - p0.y, 0.0f);
-
-	float d00 = glm::dot(e0, e0); //
-	float d01 = glm::dot(e0, e1); //
-	float d11 = glm::dot(e1, e1); //
-	float d20 = glm::dot(e2, e0);
-	float d21 = glm::dot(e2, e1);
-	float inverseDenom = 1.f / (d00 * d11 - d01 * d01); //
-
-	float v = (d11 * d20 - d01 * d21) * inverseDenom;
-	float w = (d00 * d21 - d01 * d20) * inverseDenom;
-	float u = 1.f - v - w;
-
-	return glm::vec3(u, v, w);*/
-}
-
 void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, const Color& color) {
 	float maxX = std::max(p0.x, std::max(p1.x, p2.x));
 	float minX = std::min(p0.x, std::min(p1.x, p2.x));
 	float maxY = std::max(p0.y, std::max(p1.y, p2.y));
 	float minY = std::min(p0.y, std::min(p1.y, p2.y));
 
-	/*glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f);
-	glm::vec3 e1(p2.x - p0.x, p2.y - p0.y, 0.0f);
-	float d00 = glm::dot(e0, e0);
-	float d01 = glm::dot(e0, e1);
-	float d11 = glm::dot(e1, e1);
-	float inverseDenom = 1.f / (d00 * d11 - d01 * d01);*/
 	glm::vec2 diff1(p1.x - p0.x, p1.y - p0.y);
 	glm::vec2 diff2(p2.x - p0.x, p2.y - p0.y);
 	glm::vec3 p;
 	for (p.x = minX; p.x <= maxX; p.x++) {
 		for (p.y = minY; p.y <= maxY; p.y++) {
-			//glm::vec3 bc = barycentric(p0, p1, p2, p);
 			float u = -1.0f; float v = 1.0f; float w = 1.0f;
 			glm::vec3 a(diff2.x, diff1.x, p0.x - p.x);
 			glm::vec3 b(diff2.y, diff1.y, p0.y - p.y);
@@ -151,33 +116,6 @@ void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, const Co
 				DrawPoint((int32_t)p.x, (int32_t)p.y, color);
 				mDepthBuffer[idx] = p.z;
 			}
-			
-			/*glm::vec3 e2(p.x - p0.x, p.y - p0.y, 0.0f);
-			float d20 = glm::dot(e2, e0);
-			float d21 = glm::dot(e2, e1);
-			float v = (d11 * d20 - d01 * d21) * inverseDenom;
-			float w = (d00 * d21 - d01 * d20) * inverseDenom;
-			float u = 1.f - v - w;
-
-			if (u != bc[0]) {
-				int tt = 0;
-				tt++;
-			}
-			if (v != bc[1]) {
-				int tt = 0;
-				tt++;
-			}
-			if (w != bc[2]) {
-				int tt = 0;
-				tt++;
-			}
-			/*if (u < 0 || v < 0 || w < 0) continue;
-			p.z = p0.z * u + p1.z * v + p2.z * w;
-			int idx = (int)(p.x) + (int)(p.y) * mWidth;
-			if (mDepthBuffer[idx] < p.z) {
-				DrawPoint((int32_t)p.x, (int32_t)p.y, color);
-				mDepthBuffer[idx] = p.z;
-			}*/
 		}
 	}
 	//DrawLine({ minX, minY }, { maxX, minY }, { 0, 255, 0, 255 });
