@@ -2,16 +2,10 @@
 
 #include <array>
 #include <algorithm>
+#include <limits>
 
 #include "glm\vec3.hpp"
 #include "glm\geometric.hpp"
-
-#ifndef max
-#define max __max
-#endif
-#ifndef min
-#define min __min
-#endif
 
 namespace srend
 {
@@ -35,14 +29,15 @@ void Rasterizer::SetViewport(uint32_t width, uint32_t height) {
 		mColors[i + 2] = 0;
 		mColors[i + 3] = 255;
 	}
+	mDepthBuffer = std::vector<float>(mWidth * mHeight, -std::numeric_limits<float>::max());
 }
 const std::vector<uint8_t>& Rasterizer::GetColorBuffer() const {
 	return mColors;
 }
 
 void Rasterizer::DrawPoint(int32_t x, int32_t y, const Color& color) {
-	x = max(0, min(x, (int32_t)mWidth));
-	y = max(0, min(y, (int32_t)mHeight));
+	x = std::max(0, std::min(x, (int32_t)mWidth));
+	y = std::max(0, std::min(y, (int32_t)mHeight));
 	int index = (((mHeight - y) << 2) * mWidth) + (x << 2);
 	mColors[index] = color.b;
 	mColors[index + 1] = color.g;
@@ -91,14 +86,17 @@ void Rasterizer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color&
 	}
 }
 
-glm::vec3 barycentric(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p) {
-	//glm::vec3 a(p2.x - p0.x, p1.x - p0.x, p0.x - p.x);
-	//glm::vec3 b(p2.y - p0.y, p1.y - p0.y, p0.y - p.y);
-	//glm::vec3 u = glm::cross(a, b);
-	//if (std::abs(u.z) < 1.0f) { return glm::vec3(-1.0f, 1.0f, 1.0f); }
-	//return glm::vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+glm::vec3 barycentric(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p) {
+	glm::vec3 a(p2.x - p0.x, p1.x - p0.x, p0.x - p.x);
+	glm::vec3 b(p2.y - p0.y, p1.y - p0.y, p0.y - p.y);
+	glm::vec3 c = glm::cross(a, b);
+	if (std::abs(c.z) > 1e-2) {
+		float ic = 1.0f / c.z;
+		return glm::vec3(1.0f - (c.x + c.y) * ic, c.y * ic, c.x * ic);
+	}
+	return glm::vec3(-1.0f, 1.0f, 1.0f);
 
-	glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f); //
+	/*glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f); //
 	glm::vec3 e1(p2.x - p0.x, p2.y - p0.y, 0.0f); //
 	glm::vec3 e2(p.x - p0.x, p.y - p0.y, 0.0f);
 
@@ -113,43 +111,73 @@ glm::vec3 barycentric(const glm::vec2& p0, const glm::vec2& p1, const glm::vec2&
 	float w = (d00 * d21 - d01 * d20) * inverseDenom;
 	float u = 1.f - v - w;
 
-	return glm::vec3(u, v, w);
+	return glm::vec3(u, v, w);*/
 }
 
-void Rasterizer::DrawTriangle(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color& color) {
-	//const float xx = mWidth - 1.0f;
-	//const float yy = mHeight - 1.0f;
-	//glm::vec2 bboxMin(xx, yy);
-	//glm::vec2 bboxMax(0.f, 0.f);
-	//for (int i = 0; i < 3; i++) {
-	//	bboxMin.x = max(0.0f, min(bboxMin.x, points[i].x));
-	//	bboxMin.y = max(0.0f, min(bboxMin.y, points[i].y));
-	//
-	//	bboxMax.x = min(xx, max(bboxMax.x, points[i].x));
-	//	bboxMax.y = min(yy, max(bboxMax.y, points[i].y));
-	//}
-	float maxX = max(p0.x, max(p1.x, p2.x));
-	float minX = min(p0.x, min(p1.x, p2.x));
-	float maxY = max(p0.y, max(p1.y, p2.y));
-	float minY = min(p0.y, min(p1.y, p2.y));
+void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, const Color& color) {
+	float maxX = std::max(p0.x, std::max(p1.x, p2.x));
+	float minX = std::min(p0.x, std::min(p1.x, p2.x));
+	float maxY = std::max(p0.y, std::max(p1.y, p2.y));
+	float minY = std::min(p0.y, std::min(p1.y, p2.y));
 
-	glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f);
+	/*glm::vec3 e0(p1.x - p0.x, p1.y - p0.y, 0.0f);
 	glm::vec3 e1(p2.x - p0.x, p2.y - p0.y, 0.0f);
 	float d00 = glm::dot(e0, e0);
 	float d01 = glm::dot(e0, e1);
 	float d11 = glm::dot(e1, e1);
-	float inverseDenom = 1.f / (d00 * d11 - d01 * d01);
-	glm::vec2 p;
+	float inverseDenom = 1.f / (d00 * d11 - d01 * d01);*/
+	glm::vec2 diff1(p1.x - p0.x, p1.y - p0.y);
+	glm::vec2 diff2(p2.x - p0.x, p2.y - p0.y);
+	glm::vec3 p;
 	for (p.x = minX; p.x <= maxX; p.x++) {
 		for (p.y = minY; p.y <= maxY; p.y++) {
-			glm::vec3 e2(p.x - p0.x, p.y - p0.y, 0.0f);
+			//glm::vec3 bc = barycentric(p0, p1, p2, p);
+			float u = -1.0f; float v = 1.0f; float w = 1.0f;
+			glm::vec3 a(diff2.x, diff1.x, p0.x - p.x);
+			glm::vec3 b(diff2.y, diff1.y, p0.y - p.y);
+			glm::vec3 c = glm::cross(a, b);
+			if (std::abs(c.z) > 1e-2) {
+				float ic = 1.0f / c.z;
+				u = 1.0f - (c.x + c.y) * ic;
+				v = c.y * ic;
+				w = c.x * ic;
+			}
+			if (u < 0 || v < 0 || w < 0) {
+				continue;
+			}
+			p.z = p0.z * u + p1.z * v + p2.z * w;
+			int idx = (int)(p.x) + (int)(p.y) * mWidth;
+			if (mDepthBuffer[idx] < p.z) {
+				DrawPoint((int32_t)p.x, (int32_t)p.y, color);
+				mDepthBuffer[idx] = p.z;
+			}
+			
+			/*glm::vec3 e2(p.x - p0.x, p.y - p0.y, 0.0f);
 			float d20 = glm::dot(e2, e0);
 			float d21 = glm::dot(e2, e1);
 			float v = (d11 * d20 - d01 * d21) * inverseDenom;
 			float w = (d00 * d21 - d01 * d20) * inverseDenom;
 			float u = 1.f - v - w;
-			if (u < 0 || v < 0 || w < 0) continue;
-			DrawPoint((int32_t)p.x, (int32_t)p.y, color);
+
+			if (u != bc[0]) {
+				int tt = 0;
+				tt++;
+			}
+			if (v != bc[1]) {
+				int tt = 0;
+				tt++;
+			}
+			if (w != bc[2]) {
+				int tt = 0;
+				tt++;
+			}
+			/*if (u < 0 || v < 0 || w < 0) continue;
+			p.z = p0.z * u + p1.z * v + p2.z * w;
+			int idx = (int)(p.x) + (int)(p.y) * mWidth;
+			if (mDepthBuffer[idx] < p.z) {
+				DrawPoint((int32_t)p.x, (int32_t)p.y, color);
+				mDepthBuffer[idx] = p.z;
+			}*/
 		}
 	}
 	//DrawLine({ minX, minY }, { maxX, minY }, { 0, 255, 0, 255 });
