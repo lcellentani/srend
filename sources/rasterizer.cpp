@@ -86,7 +86,7 @@ void Rasterizer::DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color&
 	}
 }
 
-void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, const Color& color) {
+void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, const Color& color, uint8_t* tex, int tw) {
 	float maxX = std::max(p0.x, std::max(p1.x, p2.x));
 	float minX = std::min(p0.x, std::min(p1.x, p2.x));
 	float maxY = std::max(p0.y, std::max(p1.y, p2.y));
@@ -113,10 +113,18 @@ void Rasterizer::DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec
 			p.z = p0.z * u + p1.z * v + p2.z * w;
 			int idx = (int)(p.x) + (int)(p.y) * mWidth;
 			if (mDepthBuffer[idx] < p.z) {
+				Color finalColor = color;
 				float s = t0.s * u + t1.s * v + t2.s * w;
 				float t = t0.t * u + t1.t * v + t2.t * w;
-				(void)s; (void)t;
-				DrawPoint((int32_t)p.x, (int32_t)p.y, color);
+				int tidx = ((int)(s * 1024.0f) + (int)(t * 1024.0f) * tw) * 3;
+				uint8_t rr = tex[tidx];
+				uint8_t gg = tex[tidx + 1];
+				uint8_t bb = tex[tidx + 2];
+				float ii = (float)(finalColor.r) / 255.0f;
+				finalColor.r = (uint8_t)(rr * ii);
+				finalColor.g = (uint8_t)(gg * ii);
+				finalColor.b = (uint8_t)(bb * ii);
+				DrawPoint((int32_t)p.x, (int32_t)p.y, finalColor);
 				mDepthBuffer[idx] = p.z;
 			}
 		}

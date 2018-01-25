@@ -31,7 +31,9 @@ public:
 
 	void DrawLine(const glm::vec2& p0, const glm::vec2& p1, const Color& color);
 
-	void DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec2 t0, glm::vec2 t1, glm::vec2 t2, const Color& color);
+	void DrawTriangle(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2,
+		glm::vec2 t0, glm::vec2 t1, glm::vec2 t2,
+		const Color& color, uint8_t* tex, int tw);
 
 private:
 	uint32_t mWidth = 0;

@@ -29,6 +29,10 @@ int main(int, char**) {
 			return 0;
 		}
 
+		int w, h, c;
+		stbi_set_flip_vertically_on_load(1);
+		uint8_t* texture = stbi_load("african_head/african_head_diffuse.tga", &w, &h, &c, 0); (void)c;
+
 		std::unique_ptr<EventsHandler> eventsHandler = std::make_unique<EventsHandler>();
 		std::unique_ptr<Rasterizer> rasterizer = std::make_unique<Rasterizer>();
 		rasterizer->SetViewport(cWidth, cHeight);
@@ -96,7 +100,11 @@ int main(int, char**) {
 				float intensity = glm::dot(normal, lightDirection);
 				if (intensity > 0) {
 					uint8_t u = (uint8_t)(intensity * 255.0f);
-					rasterizer->DrawTriangle(screenCoords[0], screenCoords[1], screenCoords[2], texcoord0[0], texcoord0[1], texcoord0[2], { u, u, u, 255 });
+					rasterizer->DrawTriangle(
+						screenCoords[0], screenCoords[1], screenCoords[2],
+						texcoord0[0], texcoord0[1], texcoord0[2],
+						{ u, u, u, 255 },
+						texture, w);
 				}
 			}
 
